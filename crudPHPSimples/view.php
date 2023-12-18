@@ -10,9 +10,8 @@ $database = 'teste1';
 $conn = mysqli_connect($hostname, $username, $password, $database) or die("Erro na conexão do BD");
 
 // Função para escapar dados antes de inserir no banco
-function escape_data($data)
+function escape_data($data, $conn)
 {
-    global $conn;
     return mysqli_real_escape_string($conn, $data);
 }
 
@@ -22,10 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
         isset($_POST['name']) && isset($_POST['email']) &&
         isset($_POST['phone']) && isset($_POST['bgroup'])
     ) {
-        $nome = escape_data($_POST['name']);
-        $email = escape_data($_POST['email']);
-        $phone = escape_data($_POST['phone']);
-        $bgroup = escape_data($_POST['bgroup']);
+        $nome = escape_data($_POST['name'], $conn);
+        $email = escape_data($_POST['email'], $conn);
+        $phone = escape_data($_POST['phone'], $conn);
+        $bgroup = escape_data($_POST['bgroup'], $conn);
 
         $sql = "INSERT INTO `usuários` (`name`, `email`, `phone`, `bgroup`) VALUES ('$nome', '$email', '$phone', '$bgroup')";
         $query = mysqli_query($conn, $sql);
@@ -41,7 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit'])) {
 }
 
 // READ
-$sql_select = "SELECT * FROM `usuários`";
+$order_by = isset($_GET['order_by']) ? $_GET['order_by'] : 'name'; // Padrão: ordenar por nome
+
+$sql_select = "SELECT * FROM `usuários` ORDER BY $order_by";
 $query_select = mysqli_query($conn, $sql_select);
 
 if ($query_select) {
@@ -99,6 +100,10 @@ if ($query_select) {
           </head>
           <body>
               <h2>Lista de Usuários</h2>
+              <div>
+                  <a href='?order_by=name'>Ordenar por Nome</a>
+                  <a href='?order_by=bgroup'>Ordenar por Grupo Sanguíneo</a>
+              </div>
               <ul>";
 
     while ($row = mysqli_fetch_assoc($query_select)) {
